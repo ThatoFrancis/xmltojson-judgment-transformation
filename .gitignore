@@ -41,3 +41,9 @@ output/
 
 # re-add in AWS deployment session (needs workflow-scope token)
 .github/workflows/
+
+# terraform
+terraform/.terraform/
+terraform/*.tfstate*
+terraform/*.tfvars
+terraform/.terraform.lock.hcl

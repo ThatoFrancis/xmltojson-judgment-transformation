@@ -1,0 +1,40 @@
+#!/bin/bash
+set -euo pipefail
+
+dnf install -y docker
+systemctl enable --now docker
+
+aws ecr get-login-password --region ${aws_region} \
+  | docker login --username AWS --password-stdin ${ecr_repo_url}
+
+docker network create web
+
+# app container - NOT published to the host; only reachable via Caddy
+docker run -d \
+  --name xmltojson \
+  --restart always \
+  --network web \
+  -e SPRING_PROFILES_ACTIVE=aws \
+  -e AWS_REGION=${aws_region} \
+  -e APP_STORAGE_BUCKET=${storage_bucket} \
+  -e APP_REGISTRY_TABLE=${registry_table} \
+  -e APP_SECURITY_API_KEY='${api_key}' \
+  ${ecr_repo_url}:${image_tag}
+
+# Caddy: TLS termination with automatic Let's Encrypt certificate
+mkdir -p /etc/caddy /var/lib/caddy
+cat > /etc/caddy/Caddyfile <<EOF
+${domain_name} {
+    reverse_proxy xmltojson:8080
+}
+EOF
+
+docker run -d \
+  --name caddy \
+  --restart always \
+  --network web \
+  -p 80:80 \
+  -p 443:443 \
+  -v /etc/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
+  -v /var/lib/caddy:/data \
+  caddy:2
