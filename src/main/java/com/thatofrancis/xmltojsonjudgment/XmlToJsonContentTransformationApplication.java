@@ -1,0 +1,14 @@
+package com.thatofrancis.xmltojsonjudgment;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+
+@SpringBootApplication
+@ConfigurationPropertiesScan
+public class XmlToJsonContentTransformationApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(XmlToJsonContentTransformationApplication.class, args);
+    }
+}
